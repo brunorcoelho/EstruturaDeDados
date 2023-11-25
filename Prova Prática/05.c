@@ -1,374 +1,152 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define true 1
-#define false 0
-#define MAXSIZE 1000
+typedef struct ed{
+    struct e *ip;
+    struct e *in;
 
-typedef unsigned short us;
+    int topo;
+    int *p;
+}ed;
 
-//----------------------- Structs de Fila ------------------
-
-typedef struct tipoNoQueue{
-
-    int dado;
-    struct tipoNoQueue *proximo;
-
-} tipoNoQueue;
-
-typedef struct tipoFila{
-
-    tipoNoQueue *primeiro;
-    tipoNoQueue *ultimo;
-
-} tipoFila;
-
-//----------------------- Structs de Pilha ------------------
-
-typedef struct tipoNoPilha{
-
-    int dado;
-    struct tipoNoPilha *proximo;
-
-} tipoNoPilha;
-
-typedef struct tipoPilha{
-
-    tipoNoPilha *topo;
-
-} tipoPilha;
-
-//----------------- Structs de Fila de Prioridade----------
-
-typedef struct pqueue{
-
-    int dado;
-    int prioridade;
-
-} pqueue;
-
-typedef struct _pqueue{
-
-    int qtd;
-    struct pqueue dados[MAXSIZE];
-
-} _pqueue;
-
-//----------------------- Funções de Fila------------------
-
-void queue(tipoFila *);
-void push(tipoFila *, int);
-int front(tipoFila *);
-void pop(tipoFila *);
-
-//----------------------- Funções de Pilha-----------------
-
-void stack(tipoPilha *);
-void pushPilha(tipoPilha *, int);
-void popPilha(tipoPilha *);
-int top(tipoPilha *);
-
-//----------------- Funções de Fila de Prioridade----------
-
-_pqueue* priotiry();
-void pushPqueue(_pqueue *, int, int );
-void popPqueue(_pqueue *);
-int topPqueue(_pqueue *);
-void balanceiaRemocao(_pqueue *, int);
-void balanceiaInsercao(_pqueue *, int);
-
-
-void main ()
-{
+typedef struct e{
     int n;
-    while (scanf("%d", &n) != EOF)
-    {
+    struct e *prox;
+}e;
 
-        int x, comando, i;
-        _Bool queueN, stackN, pqueue;
-        _pqueue *priotiry_queue = priotiry();
-        tipoFila fila;
-        tipoPilha stackk;
+ed *allocStruct();
+void insert(ed *edx, int n);
+void delete(ed *edx, int n);
 
-        queue(&fila);
-        stack(&stackk);
+int pilha, fila, filap;
 
-        queueN = stackN = pqueue = true;
-        for (i = 0; i < n; ++i)
-        {
+int main(){
+    ed *edx;
+    int x, i, op, n;
 
-            scanf("%d %d", &comando, &x);
+    while(scanf("%d", &x) == 1){
+        pilha=1;
+        fila=1;
+        filap=1;
 
-            if (comando == 1)
-            {
+        edx = allocStruct();
 
-                pushPqueue(priotiry_queue, x, x);
-                pushPilha(&stackk, x);
-                push(&fila, x);
+        for(i=0; i<x; i++){
+            scanf("%d %d", &op, &n);
 
+            if(op == 1) insert(edx, n);
+            else delete(edx, n);
+        }
+
+        if(pilha == 1 && filap == 1 || filap == 1 && fila == 1 || pilha == 1 && fila == 1) printf("not sure\n");
+        else if(filap) printf("priority queue\n");
+        else if(fila) printf("queue\n");
+        else if(pilha) printf("stack\n");
+        else printf("impossible\n");
+
+        free(edx);
+    }
+
+
+    return 0;
+}
+
+ed *allocStruct(){
+    ed *aux;
+
+    aux = (ed*)malloc(sizeof(ed));
+    aux->ip = NULL;
+    aux->in = NULL;
+    aux->topo = 0;
+    aux->p = NULL;
+
+    return aux;
+}
+
+
+void insert(ed *edx, int n){
+    e *ep, *en, *aux, *ant;
+    int first=1;
+
+    if(filap == 1){
+        ep = (e*)malloc(sizeof(e));
+        ep->n = n;
+        ep->prox = NULL;
+
+        if(edx->ip == NULL) edx->ip = ep;
+        else {
+            aux = edx->ip;
+
+            while(aux != NULL){
+                if(ep->n > aux->n) break;
+
+                first=0;
+                ant = aux;
+                aux = aux->prox;
             }
-            else
-            {
 
-                if (top(&stackk) != x)
-                    stackN = false;
-                else
-                    popPilha(&stackk);
-                
-                if (front(&fila) != x)
-                    queueN = false;
-                else
-                    pop(&fila);
-
-                if (topPqueue(priotiry_queue) != x)
-                    pqueue = false;
-                else
-                    popPqueue(priotiry_queue);
-
+            if(first == 1){
+                ant = edx->ip;
+                edx->ip = ep;
+                ep->prox = ant;
+            } else {
+                ant->prox = ep;
+                ep->prox = aux;
             }
-
         }
-
-        if (!stackN && !queueN && !pqueue)
-            printf("impossible\n");
-        else if (stackN && pqueue)
-            printf("not sure\n");
-        else if (stackN && queueN)
-            printf("not sure\n");
-        else if (pqueue && queueN)
-            printf("not sure\n");
-        else if (pqueue)
-            printf("priority queue\n");
-        else if (queueN)
-            printf("queue\n");
-        else if (stackN)
-            printf("stack\n");
-
     }
 
-}
+    if(fila == 1){
+        en = (e*)malloc(sizeof(e));
+        en->n = n;
+        en->prox = NULL;
 
-void queue(tipoFila *fila)
-{
+        if(edx->in == NULL) edx->in = en;
+        else {
+            aux = edx->in;
 
-    fila->primeiro = fila->ultimo = NULL;
+            while(aux->prox != NULL) aux =  aux->prox;
 
-}
-
-void push(tipoFila *fila, int x)
-{
-
-    tipoNoQueue *auxiliar;
-
-    auxiliar = (tipoNoQueue *) malloc(sizeof(tipoNoQueue));
-
-    if (!auxiliar)
-        exit(1);
-
-    if (fila->primeiro)
-    {
-
-        fila->ultimo->proximo = auxiliar;
-        auxiliar->proximo = NULL;
-
-    }
-    else
-        fila->primeiro = auxiliar;
-
-    fila->ultimo = auxiliar;
-    auxiliar->dado = x;
-
-}
-
-void pop(tipoFila *fila)
-{
-
-    tipoNoQueue *auxiliar;
-
-    if (fila->primeiro)
-    {
-
-        if (fila->primeiro->proximo)
-        {
-
-            auxiliar = fila->primeiro;
-            fila->primeiro = fila->primeiro->proximo;
-            free(auxiliar);
-            return;
-
+            aux->prox = en;
         }
-        else
-        {
-
-            auxiliar = fila->primeiro;
-            fila->primeiro = fila->ultimo = NULL;
-            free(auxiliar);
-            return;
-
-        }
-
-    }
-    else
-        return;
-
-}
-
-int front(tipoFila *fila)
-{
-
-    return fila->primeiro->dado;
-
-}
-
-void stack(tipoPilha *pilha)
-{
-
-    pilha->topo = NULL;
-
-}
-
-int top(tipoPilha *pilha)
-{
-
-    return pilha->topo->dado;
-
-}
-
-void popPilha(tipoPilha *pilha)
-{
-
-    tipoNoPilha *auxiliar;
-
-    auxiliar = pilha->topo;
-
-    if (auxiliar)
-    {
-
-        pilha->topo = auxiliar->proximo;
-        free(auxiliar);
-
     }
 
+    if(pilha == 1){
+        if(edx->topo == 0) edx->p = (int*)malloc(sizeof(int));
+        else edx->p = (int*)realloc(edx->p ,sizeof(int)*(edx->topo+1));
+
+        edx->p[edx->topo] = n;
+        edx->topo++;
+    }
 }
 
-void pushPilha(tipoPilha *pilha, int x)
-{
+void delete(ed *edx, int n){
+    e *aux;
 
-    tipoNoPilha *auxiliar;
-
-    auxiliar = (tipoNoPilha *) malloc(sizeof(tipoNoPilha));
-
-    if (!auxiliar)
-        exit(1);
-
-    auxiliar->proximo = pilha->topo;
-    pilha->topo = auxiliar;
-    auxiliar->dado = x;
-
-}
-
-void pushPqueue(_pqueue *filaP, int prioridade, int id)
-{
-
-    if (filaP == NULL)
-        exit(1);
-
-    if (filaP->qtd == MAXSIZE)
-        exit(1);
-
-    filaP->dados[filaP->qtd].dado = id;
-    filaP->dados[filaP->qtd].prioridade = prioridade;
-    balanceiaInsercao(filaP, filaP->qtd);
-    ++filaP->qtd;
-
-}
-
-void balanceiaInsercao(_pqueue *filaP, int filho)
-{
-
-    int pai;
-    pqueue tmp;
-
-    pai = (filho - 1) / 2;
-
-    while ((filho > 0) && (filaP->dados[pai].prioridade <= filaP->dados[filho].prioridade))
-    {
-
-        tmp = filaP->dados[filho];
-        filaP->dados[filho] = filaP->dados[pai];
-        filaP->dados[pai] = tmp;
-
-        filho = pai;
-        pai = (pai - 1) / 2;
-
+    if(edx->p != NULL && pilha != 0){
+        if(edx->p[edx->topo-1] == n){
+            edx->p = (int*)realloc(edx->p, sizeof(int)*(edx->topo-1));
+            edx->topo--;
+        } else pilha = 0;
     }
 
-}
+    if(edx->ip != NULL && filap != 0){
+        aux = edx->ip;
 
-int topPqueue(_pqueue *filaP)
-{
-
-    if (filaP == NULL ||filaP->qtd == 0)
-        return 0;
-
-    return filaP->dados[0].dado;
-
-}
-
-_pqueue* priotiry()
-{
-
-    _pqueue *filaP;
-
-    filaP = (_pqueue *) malloc(sizeof(_pqueue));
-
-    if (filaP)
-        filaP->qtd = 0;
-
-    return filaP;
-
-}
-
-void popPqueue(_pqueue *filaP)
-{
-
-    if (filaP == NULL)
-        exit(1);
-
-    if (filaP->qtd == 0)
-        exit(1);
-
-    --filaP->qtd;
-    filaP->dados[0] = filaP->dados[filaP->qtd];
-    balanceiaRemocao(filaP, 0);
-
-}
-
-void balanceiaRemocao(_pqueue *filaP, int pai)
-{
-
-    int filho;
-    pqueue tmp;
-
-    filho = 2 * pai + 1;
-
-    while (filho < filaP->qtd)
-    {
-
-        if (filho < filaP->qtd - 1)
-            if (filaP->dados[filho].prioridade < filaP->dados[filho + 1].prioridade)
-                ++filho;
-
-        if (filaP->dados[pai].prioridade >= filaP->dados[filho].prioridade)
-            break;
-
-        tmp = filaP->dados[pai];
-        filaP->dados[pai] = filaP->dados[filho];
-        filaP->dados[filho] = tmp;
-        
-        pai = filho;
-        filho = 2 * pai + 1;
-
+        if(aux->n == n){
+            aux = aux->prox;
+            free(edx->ip);
+            edx->ip = aux;
+        } else filap = 0;
     }
 
+    if(edx->in != NULL && fila != 0){
+        aux = edx->in;
+
+        if(aux->n == n){
+            aux = aux->prox;
+            free(edx->in);
+            edx->in = aux;
+        } else fila = 0;
+    }
 }
